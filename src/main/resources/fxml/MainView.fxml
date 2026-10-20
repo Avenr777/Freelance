@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.freelance.controller.MainController"
+            prefWidth="1100" prefHeight="700"
+            stylesheets="@/css/ledger.css">
+
+    <!-- Left Navigation Rail -->
+    <left>
+        <VBox styleClass="left-rail" spacing="12">
+            <Label text="FREELANCER LEDGER" styleClass="left-rail-title"/>
+            
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Button text="+ Add Client" onAction="#handleAddClient" styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="+ Project" onAction="#handleAddProject" styleClass="btn-secondary" />
+            </HBox>
+
+            <Separator styleClass="line"/>
+            
+            <Label text="CLIENTS &amp; PROJECTS" style="-fx-text-fill: #D8D0BE; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+            
+            <TreeView fx:id="clientProjectTree" VBox.vgrow="ALWAYS" showRoot="false"/>
+        </VBox>
+    </left>
+
+    <!-- Main Center Pane -->
+    <center>
+        <VBox spacing="16">
+            <padding>
+                <Insets top="20" right="24" bottom="20" left="24"/>
+            </padding>
+
+            <!-- Top Header & Client/Project Details -->
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox HBox.hgrow="ALWAYS" spacing="4">
+                    <Label fx:id="headerTitle" text="Select a Client or Project" styleClass="ledger-header"/>
+                    <Label fx:id="headerSubtitle" text="Manage work logs and auto-generate invoices." styleClass="ledger-subtitle"/>
+                </VBox>
+                <VBox alignment="CENTER_RIGHT" spacing="4" styleClass="summary-card">
+                    <Label text="UNINVOICED TOTAL" style="-fx-font-size: 11px; -fx-text-fill: #1F2A24; -fx-font-weight: bold;"/>
+                    <Label fx:id="uninvoicedTotalLabel" text="₹0.00" styleClass="gold-total"/>
+                </VBox>
+            </HBox>
+
+            <TabPane fx:id="mainTabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+                <!-- Work Logs Tab -->
+                <Tab text="Work Logs Ledger">
+                    <VBox spacing="12">
+                        <padding>
+                            <Insets top="12"/>
+                        </padding>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Button text="+ Log Hours" onAction="#handleAddWorkLog" styleClass="btn-primary"/>
+                            <Button text="Delete Selected Log" onAction="#handleDeleteWorkLog" styleClass="btn-secondary"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="⚡ Generate Invoice" onAction="#handleGenerateInvoice" styleClass="btn-primary" style="-fx-background-color: #B8862F;"/>
+                        </HBox>
+
+                        <TableView fx:id="workLogTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="colLogDate" text="Date" prefWidth="120"/>
+                                <TableColumn fx:id="colLogProject" text="Project" prefWidth="160"/>
+                                <TableColumn fx:id="colLogDescription" text="Description / Task" prefWidth="320"/>
+                                <TableColumn fx:id="colLogHours" text="Hours" prefWidth="100" styleClass="table-cell-number"/>
+                                <TableColumn fx:id="colLogRate" text="Rate" prefWidth="100" styleClass="table-cell-number"/>
+                                <TableColumn fx:id="colLogAmount" text="Amount" prefWidth="120" styleClass="table-cell-number"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- Invoices Tab -->
+                <Tab text="Invoices Ledger">
+                    <VBox spacing="12">
+                        <padding>
+                            <Insets top="12"/>
+                        </padding>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Button text="Mark as Sent" onAction="#handleMarkAsSent" styleClass="btn-secondary"/>
+                            <Button text="Mark as Paid" onAction="#handleMarkAsPaid" styleClass="btn-primary"/>
+                            <Button text="📄 Export PDF" onAction="#handleExportPdf" styleClass="btn-secondary"/>
+                            <Button text="Delete Invoice" onAction="#handleDeleteInvoice" styleClass="btn-danger"/>
+                        </HBox>
+
+                        <TableView fx:id="invoiceTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="colInvId" text="Invoice #" prefWidth="100"/>
+                                <TableColumn fx:id="colInvProject" text="Project" prefWidth="180"/>
+                                <TableColumn fx:id="colInvIssueDate" text="Issue Date" prefWidth="120"/>
+                                <TableColumn fx:id="colInvDueDate" text="Due Date" prefWidth="120"/>
+                                <TableColumn fx:id="colInvAmount" text="Total Amount" prefWidth="140" styleClass="table-cell-number"/>
+                                <TableColumn fx:id="colInvStatus" text="Status" prefWidth="140"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </center>
+</BorderPane>

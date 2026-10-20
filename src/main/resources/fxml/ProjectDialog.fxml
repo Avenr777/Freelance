@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.freelance.controller.ProjectDialogController"
+      spacing="16" prefWidth="420" stylesheets="@/css/ledger.css">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="Add New Project" styleClass="ledger-header"/>
+
+    <VBox spacing="6">
+        <Label text="Select Client *" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="clientComboBox" promptText="Select a client..." maxWidth="Infinity"/>
+    </VBox>
+
+    <VBox spacing="6">
+        <Label text="Project Name *" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="projectNameField" promptText="e.g. E-Commerce Redesign"/>
+    </VBox>
+
+    <VBox spacing="6">
+        <Label text="Hourly Rate (₹/hr) *" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="hourlyRateField" promptText="65.00"/>
+    </VBox>
+
+    <HBox spacing="12" alignment="CENTER_RIGHT">
+        <Button text="Cancel" onAction="#handleCancel" styleClass="btn-secondary"/>
+        <Button text="Save Project" onAction="#handleSave" styleClass="btn-primary"/>
+    </HBox>
+</VBox>

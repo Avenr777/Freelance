@@ -1,0 +1,196 @@
+/* Ledger Design Theme */
+
+/* Global Colors:
+   paper: #F7F4EC
+   ink: #1F2A24
+   ledger-green: #2F5D50
+   stamp-red: #A63D33
+   line: #D8D0BE
+   gold-accent: #B8862F
+*/
+
+.root {
+    -fx-font-family: 'Inter', 'Source Sans 3', 'Segoe UI', sans-serif;
+    -fx-font-size: 13px;
+    -fx-base: #F7F4EC;
+    -fx-background-color: #F7F4EC;
+    -fx-text-fill: #1F2A24;
+}
+
+/* Left Navigation Rail */
+.left-rail {
+    -fx-background-color: #1F2A24;
+    -fx-padding: 16px;
+    -fx-min-width: 260px;
+    -fx-pref-width: 260px;
+}
+
+.left-rail-title {
+    -fx-font-family: 'Roboto Slab', 'Georgia', serif;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F7F4EC;
+    -fx-padding: 0 0 12px 0;
+}
+
+.tree-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #D8D0BE;
+    -fx-padding: 6px 8px;
+}
+
+.tree-cell:filled:selected, .tree-cell:filled:hover {
+    -fx-background-color: #2F5D50;
+    -fx-text-fill: #F7F4EC;
+    -fx-background-radius: 4px;
+}
+
+/* Action Buttons */
+.btn-primary {
+    -fx-background-color: #2F5D50;
+    -fx-text-fill: #F7F4EC;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #24493F;
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-border-color: #D8D0BE;
+    -fx-border-radius: 4px;
+    -fx-text-fill: #1F2A24;
+    -fx-padding: 7px 14px;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #EFEAE0;
+}
+
+.btn-danger {
+    -fx-background-color: #A63D33;
+    -fx-text-fill: #F7F4EC;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #893129;
+}
+
+/* Header & Ledger Titles */
+.ledger-header {
+    -fx-font-family: 'Roboto Slab', 'Georgia', serif;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2A24;
+}
+
+.ledger-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #2F5D50;
+    -fx-font-weight: bold;
+}
+
+.gold-total {
+    -fx-font-family: 'Roboto Slab', 'Georgia', serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #B8862F;
+}
+
+/* Table View styling matching ledger book */
+.table-view {
+    -fx-background-color: #F7F4EC;
+    -fx-border-color: #D8D0BE;
+    -fx-border-width: 1px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #1F2A24;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: #1F2A24;
+    -fx-border-color: #1F2A24;
+    -fx-size: 36px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #F7F4EC;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: #F7F4EC;
+    -fx-border-color: transparent transparent #D8D0BE transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #F2EDE2;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #E5DFC8;
+    -fx-text-fill: #1F2A24;
+}
+
+.table-cell {
+    -fx-padding: 8px 10px;
+    -fx-alignment: CENTER-LEFT;
+}
+
+.table-cell-number {
+    -fx-alignment: CENTER-RIGHT;
+    -fx-font-family: 'Consolas', 'Courier New', monospace;
+}
+
+/* Status Chips */
+.status-chip {
+    -fx-padding: 4px 10px;
+    -fx-background-radius: 3px;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.status-paid {
+    -fx-background-color: #2F5D50;
+    -fx-text-fill: #F7F4EC;
+}
+
+.status-overdue {
+    -fx-background-color: #A63D33;
+    -fx-text-fill: #F7F4EC;
+}
+
+.status-sent {
+    -fx-background-color: #B8862F;
+    -fx-text-fill: #F7F4EC;
+}
+
+.status-draft {
+    -fx-background-color: #D8D0BE;
+    -fx-text-fill: #1F2A24;
+}
+
+/* Summary Card */
+.summary-card {
+    -fx-background-color: #F7F4EC;
+    -fx-border-color: #D8D0BE;
+    -fx-border-width: 1px;
+    -fx-padding: 16px;
+    -fx-background-radius: 4px;
+}
