@@ -8,6 +8,7 @@ import com.freelance.model.*;
 import com.freelance.service.InvoiceService;
 import com.freelance.service.PdfExportService;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -65,6 +66,7 @@ public class MainController {
     private final WorkLogDao workLogDao = new WorkLogDao();
     private final InvoiceDao invoiceDao = new InvoiceDao();
     private final InvoiceService invoiceService = new InvoiceService();
+    private final com.freelance.service.PaymentReminderService paymentReminderService = new com.freelance.service.PaymentReminderService(invoiceDao);
 
     // Data lists
     private final ObservableList<WorkLog> workLogList = FXCollections.observableArrayList();
@@ -101,7 +103,7 @@ public class MainController {
         colInvIssueDate.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getIssueDate().format(DATE_FORMATTER)));
         colInvDueDate.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDueDate().format(DATE_FORMATTER)));
         colInvAmount.setCellValueFactory(cell -> new SimpleStringProperty(
-                "₹" + cell.getValue().getTotalAmount().setScale(2, RoundingMode.HALF_UP).toString()));
+                "₹" + cell.getValue().getBalanceDue().setScale(2, RoundingMode.HALF_UP).toString()));
 
         colInvStatus.setCellFactory(column -> new TableCell<>() {
             @Override
@@ -147,8 +149,15 @@ public class MainController {
                     selectedProject = p;
                     selectedClient = p.getClient();
                     headerTitle.setText(p.getProjectName());
-                    headerSubtitle.setText("Client: " + (p.getClient() != null ? p.getClient().getName() : "") +
-                            " | ₹" + p.getHourlyRate() + "/hr");
+                    try {
+                        BigDecimal trackedCost = invoiceService.calculateProjectTotal(p);
+                        headerSubtitle.setText("Client: " + (p.getClient() != null ? p.getClient().getName() : "") +
+                                " | ₹" + p.getHourlyRate() + "/hr | Budget ₹" + p.getBudgetAmount() + " | Tracked ₹" + trackedCost);
+                    } catch (java.sql.SQLException exception) {
+                        logger.warn("Could not calculate project budget progress", exception);
+                        headerSubtitle.setText("Client: " + (p.getClient() != null ? p.getClient().getName() : "") +
+                                " | ₹" + p.getHourlyRate() + "/hr | Budget ₹" + p.getBudgetAmount());
+                    }
                 }
             } else {
                 selectedClient = null;
@@ -272,6 +281,67 @@ public class MainController {
     }
 
     @FXML
+    private void handleDeleteSelectedClient() {
+        TreeItem<Object> selectedItem = clientProjectTree.getSelectionModel().getSelectedItem();
+        Client client = selectedItem != null && selectedItem.getValue() instanceof Client selected ? selected : null;
+        if (client == null) {
+            showAlert("Client Required", "Select a client (not one of its projects) from the sidebar before deleting it.");
+            return;
+        }
+
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Delete Client");
+        confirmation.setHeaderText("Delete client: " + client.getName());
+        confirmation.setContentText("This permanently deletes the client and all of its projects, work logs, invoices, and payments. Continue?");
+        if (confirmation.showAndWait().filter(ButtonType.OK::equals).isEmpty()) return;
+
+        try {
+            if (!clientDao.delete(client.getClientId())) {
+                showAlert("Client Not Found", "The selected client no longer exists.");
+                return;
+            }
+            clearSelectionAndRefresh();
+        } catch (Exception exception) {
+            logger.error("Could not delete client {}", client.getClientId(), exception);
+            showAlert("Delete Error", "Could not delete client: " + exception.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleDeleteSelectedProject() {
+        TreeItem<Object> selectedItem = clientProjectTree.getSelectionModel().getSelectedItem();
+        Project project = selectedItem != null && selectedItem.getValue() instanceof Project selected ? selected : null;
+        if (project == null) {
+            showAlert("Project Required", "Select a project (not a client) from the sidebar before deleting it.");
+            return;
+        }
+
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Delete Project");
+        confirmation.setHeaderText("Delete project: " + project.getProjectName());
+        confirmation.setContentText("This permanently deletes the project's work logs, invoices, and payments. Continue?");
+        if (confirmation.showAndWait().filter(ButtonType.OK::equals).isEmpty()) return;
+
+        try {
+            if (!projectDao.delete(project.getProjectId())) {
+                showAlert("Project Not Found", "The selected project no longer exists.");
+                return;
+            }
+            clearSelectionAndRefresh();
+        } catch (Exception exception) {
+            logger.error("Could not delete project {}", project.getProjectId(), exception);
+            showAlert("Delete Error", "Could not delete project: " + exception.getMessage());
+        }
+    }
+
+    private void clearSelectionAndRefresh() {
+        selectedClient = null;
+        selectedProject = null;
+        clientProjectTree.getSelectionModel().clearSelection();
+        refreshAllData();
+    }
+
+    @FXML
     private void handleAddWorkLog() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/WorkLogDialog.fxml"));
@@ -378,6 +448,47 @@ public class MainController {
         } catch (Exception e) {
             logger.error("Error updating status: {}", e.getMessage(), e);
         }
+    }
+
+    @FXML
+    private void handleRecordPayment() {
+        Invoice selected = invoiceTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert("No Selection", "Please select an invoice before recording a payment.");
+            return;
+        }
+        TextInputDialog dialog = new TextInputDialog(selected.getBalanceDue().toPlainString());
+        dialog.setTitle("Record Partial Payment");
+        dialog.setHeaderText("Balance due: ₹" + selected.getBalanceDue());
+        dialog.setContentText("Payment amount:");
+        dialog.showAndWait().ifPresent(value -> {
+            try {
+                invoiceService.recordPayment(selected.getInvoiceId(), new BigDecimal(value.trim()), "Recorded in application");
+                filterLedgerTables();
+            } catch (IllegalArgumentException | java.sql.SQLException exception) {
+                showAlert("Payment Error", exception.getMessage());
+            }
+        });
+    }
+
+    @FXML
+    private void handleCreateReminders() {
+        paymentReminderService.createReminderFileAsync().whenComplete((batch, error) -> Platform.runLater(() -> {
+            if (error != null) {
+                logger.error("Could not create reminder file", error);
+                showAlert("Reminder Error", error.getCause() == null ? error.getMessage() : error.getCause().getMessage());
+            } else {
+                Alert info = new Alert(Alert.AlertType.INFORMATION);
+                info.setTitle("Reminders Created");
+                info.setHeaderText(batch.reminderCount() == 0
+                        ? "No payment reminders are currently needed"
+                        : batch.reminderCount() + " payment reminder" + (batch.reminderCount() == 1 ? "" : "s") + " created in the background");
+                info.setContentText("Overdue: " + batch.overdueCount()
+                        + "\nTotal outstanding: ₹" + batch.totalOutstanding()
+                        + "\nSaved to: " + batch.file());
+                info.showAndWait();
+            }
+        }));
     }
 
     @FXML

@@ -22,6 +22,7 @@ public class ProjectDialogController {
     @FXML private ComboBox<Client> clientComboBox;
     @FXML private TextField projectNameField;
     @FXML private TextField hourlyRateField;
+    @FXML private TextField budgetField;
 
     private Stage dialogStage;
     private Project project;
@@ -66,6 +67,7 @@ public class ProjectDialogController {
         }
 
         BigDecimal rate;
+        BigDecimal budget;
         try {
             rate = new BigDecimal(rateText);
             if (rate.compareTo(BigDecimal.ZERO) < 0) {
@@ -78,7 +80,16 @@ public class ProjectDialogController {
         }
 
         try {
-            project = new Project(client, name, rate);
+            String budgetText = budgetField.getText() == null ? "" : budgetField.getText().trim();
+            budget = budgetText.isEmpty() ? BigDecimal.ZERO : new BigDecimal(budgetText);
+            if (budget.compareTo(BigDecimal.ZERO) < 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            showAlert("Invalid Input", "Project budget must be a non-negative number.");
+            return;
+        }
+
+        try {
+            project = new Project(client, name, rate, budget);
             project = projectDao.save(project);
             saveClicked = true;
             dialogStage.close();

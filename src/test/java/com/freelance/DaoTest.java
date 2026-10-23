@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DaoTest {
 
     @BeforeAll
-    public static void setup() {
+    public static void setup() throws Exception {
         System.setProperty("db.type", "h2");
         System.setProperty("db.h2.url", "jdbc:h2:mem:daotestdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");
         DatabaseInitializer.initialize();
@@ -50,6 +50,7 @@ public class DaoTest {
 
         List<WorkLog> logs = workLogDao.findByProjectId(project.getProjectId());
         assertEquals(2, logs.size());
+        assertEquals(project.getProjectId(), workLogDao.findById(log1.getLogId()).orElseThrow().getProject().getProjectId());
 
         BigDecimal totalHours = workLogDao.sumHoursByProjectId(project.getProjectId());
         assertEquals(new BigDecimal("6.50"), totalHours.setScale(2));
@@ -63,6 +64,8 @@ public class DaoTest {
         Optional<Invoice> retrieved = invoiceDao.findById(invoice.getInvoiceId());
         assertTrue(retrieved.isPresent());
         assertEquals(new BigDecimal("487.50"), retrieved.get().getTotalAmount().setScale(2));
+        assertEquals(1, invoiceDao.findByProjectId(project.getProjectId()).size());
+        assertEquals(1, invoiceDao.findAll().size());
 
         // 5. Update status
         boolean updated = invoiceDao.updateStatus(invoice.getInvoiceId(), InvoiceStatus.PAID);

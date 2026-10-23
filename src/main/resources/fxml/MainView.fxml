@@ -18,6 +18,10 @@
                 <Button text="+ Add Client" onAction="#handleAddClient" styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                 <Button text="+ Project" onAction="#handleAddProject" styleClass="btn-secondary" />
             </HBox>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Button text="Delete Selected Client" onAction="#handleDeleteSelectedClient" styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="Delete Selected Project" onAction="#handleDeleteSelectedProject" styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            </HBox>
 
             <Separator styleClass="line"/>
             
@@ -82,6 +86,8 @@
                         <HBox alignment="CENTER_LEFT" spacing="12">
                             <Button text="Mark as Sent" onAction="#handleMarkAsSent" styleClass="btn-secondary"/>
                             <Button text="Mark as Paid" onAction="#handleMarkAsPaid" styleClass="btn-primary"/>
+                            <Button text="Record Payment" onAction="#handleRecordPayment" styleClass="btn-secondary"/>
+                            <Button text="Create Reminders" onAction="#handleCreateReminders" styleClass="btn-secondary"/>
                             <Button text="📄 Export PDF" onAction="#handleExportPdf" styleClass="btn-secondary"/>
                             <Button text="Delete Invoice" onAction="#handleDeleteInvoice" styleClass="btn-danger"/>
                         </HBox>
@@ -92,7 +98,7 @@
                                 <TableColumn fx:id="colInvProject" text="Project" prefWidth="180"/>
                                 <TableColumn fx:id="colInvIssueDate" text="Issue Date" prefWidth="120"/>
                                 <TableColumn fx:id="colInvDueDate" text="Due Date" prefWidth="120"/>
-                                <TableColumn fx:id="colInvAmount" text="Total Amount" prefWidth="140" styleClass="table-cell-number"/>
+                                <TableColumn fx:id="colInvAmount" text="Balance Due" prefWidth="140" styleClass="table-cell-number"/>
                                 <TableColumn fx:id="colInvStatus" text="Status" prefWidth="140"/>
                             </columns>
                         </TableView>

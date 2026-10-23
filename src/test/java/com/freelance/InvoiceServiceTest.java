@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InvoiceServiceTest {
 
     @BeforeAll
-    public static void setup() {
+    public static void setup() throws Exception {
         System.setProperty("db.type", "h2");
         System.setProperty("db.h2.url", "jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");
         DatabaseInitializer.initialize();

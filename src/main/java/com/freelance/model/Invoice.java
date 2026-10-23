@@ -11,6 +11,11 @@ public class Invoice {
     private LocalDate issueDate;
     private LocalDate dueDate;
     private InvoiceStatus status;
+    private BigDecimal taxRate = BigDecimal.ZERO;
+    private DiscountType discountType = DiscountType.NONE;
+    private BigDecimal discountValue = BigDecimal.ZERO;
+    private String notes;
+    private BigDecimal amountPaid = BigDecimal.ZERO;
 
     public Invoice() {
         this.status = InvoiceStatus.DRAFT;
@@ -28,6 +33,31 @@ public class Invoice {
     public Invoice(Project project, BigDecimal totalAmount, LocalDate issueDate, LocalDate dueDate) {
         this(0, project, totalAmount, issueDate, dueDate, InvoiceStatus.DRAFT);
     }
+
+    public BigDecimal getTaxRate() { return taxRate; }
+    public void setTaxRate(BigDecimal taxRate) { this.taxRate = nonNegative(taxRate); }
+    public DiscountType getDiscountType() { return discountType; }
+    public void setDiscountType(DiscountType discountType) { this.discountType = discountType == null ? DiscountType.NONE : discountType; }
+    public BigDecimal getDiscountValue() { return discountValue; }
+    public void setDiscountValue(BigDecimal discountValue) { this.discountValue = nonNegative(discountValue); }
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+    public BigDecimal getAmountPaid() { return amountPaid; }
+    public void setAmountPaid(BigDecimal amountPaid) { this.amountPaid = nonNegative(amountPaid); }
+
+    /** Applies the configured fixed/percentage discount and then the tax rate. */
+    public BigDecimal calculateFinalAmount() {
+        BigDecimal subtotal = totalAmount == null ? BigDecimal.ZERO : totalAmount;
+        BigDecimal discount = discountType == DiscountType.PERCENTAGE
+                ? subtotal.multiply(discountValue).movePointLeft(2) : discountValue;
+        BigDecimal discounted = subtotal.subtract(discount).max(BigDecimal.ZERO);
+        return discounted.multiply(BigDecimal.ONE.add(taxRate.movePointLeft(2))).setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal getBalanceDue() { return calculateFinalAmount().subtract(amountPaid).max(BigDecimal.ZERO); }
+    public boolean isFullyPaid() { return getBalanceDue().compareTo(BigDecimal.ZERO) == 0; }
+
+    private BigDecimal nonNegative(BigDecimal value) { return value == null || value.signum() < 0 ? BigDecimal.ZERO : value; }
 
     public int getInvoiceId() {
         return invoiceId;

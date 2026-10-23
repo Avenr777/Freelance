@@ -164,6 +164,17 @@ public class PdfExportService {
 
         document.add(new Paragraph("\n"));
 
+        if (invoice.getNotes() != null && !invoice.getNotes().isBlank()) {
+            Paragraph notes = new Paragraph();
+            notes.add(new Chunk("Notes: ", boldFont));
+            notes.add(new Chunk(invoice.getNotes(), bodyFont));
+            document.add(notes);
+            document.add(new Paragraph("\n"));
+        }
+
+        // The final total includes the invoice-level discount and tax configuration.
+        grandTotal = invoice.calculateFinalAmount();
+
         // Summary Total Box
         PdfPTable totalTable = new PdfPTable(2);
         totalTable.setWidthPercentage(100);

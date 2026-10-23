@@ -1,8 +1,9 @@
 package com.freelance.dao;
 
 import com.freelance.db.DatabaseFactory;
-import com.freelance.model.WorkLog;
+import com.freelance.model.Client;
 import com.freelance.model.Project;
+import com.freelance.model.WorkLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,6 @@ import java.util.Optional;
 
 public class WorkLogDao {
     private static final Logger logger = LoggerFactory.getLogger(WorkLogDao.class);
-    private final ProjectDao projectDao = new ProjectDao();
 
     public WorkLog save(WorkLog log) throws SQLException {
         String sql = "INSERT INTO work_logs (project_id, work_date, hours_worked, description) VALUES (?, ?, ?, ?)";
@@ -59,24 +59,17 @@ public class WorkLogDao {
     }
 
     public Optional<WorkLog> findById(int logId) throws SQLException {
-        String sql = "SELECT log_id, project_id, work_date, hours_worked, description FROM work_logs WHERE log_id = ?";
+        String sql = "SELECT w.log_id, w.work_date, w.hours_worked, w.description, " +
+                "p.project_id, p.client_id, p.project_name, p.hourly_rate, p.budget_amount, " +
+                "c.name AS client_name, c.email AS client_email, c.phone AS client_phone " +
+                "FROM work_logs w JOIN projects p ON w.project_id = p.project_id " +
+                "JOIN clients c ON p.client_id = c.client_id WHERE w.log_id = ?";
         try (Connection conn = DatabaseFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, logId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    int projId = rs.getInt("project_id");
-                    Optional<Project> projOpt = projectDao.findById(projId);
-                    if (projOpt.isPresent()) {
-                        WorkLog log = new WorkLog(
-                                rs.getInt("log_id"),
-                                projOpt.get(),
-                                rs.getDate("work_date").toLocalDate(),
-                                rs.getBigDecimal("hours_worked"),
-                                rs.getString("description")
-                        );
-                        return Optional.of(log);
-                    }
+                    return Optional.of(mapResultSetToWorkLog(rs));
                 }
             }
         }
@@ -85,30 +78,45 @@ public class WorkLogDao {
 
     public List<WorkLog> findByProjectId(int projectId) throws SQLException {
         List<WorkLog> logs = new ArrayList<>();
-        Optional<Project> projOpt = projectDao.findById(projectId);
-        if (projOpt.isEmpty()) {
-            return logs;
-        }
-        Project project = projOpt.get();
-
-        String sql = "SELECT log_id, work_date, hours_worked, description FROM work_logs " +
-                "WHERE project_id = ? ORDER BY work_date DESC, log_id DESC";
+        String sql = "SELECT w.log_id, w.work_date, w.hours_worked, w.description, " +
+                "p.project_id, p.client_id, p.project_name, p.hourly_rate, p.budget_amount, " +
+                "c.name AS client_name, c.email AS client_email, c.phone AS client_phone " +
+                "FROM work_logs w JOIN projects p ON w.project_id = p.project_id " +
+                "JOIN clients c ON p.client_id = c.client_id " +
+                "WHERE w.project_id = ? ORDER BY w.work_date DESC, w.log_id DESC";
         try (Connection conn = DatabaseFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, projectId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    logs.add(new WorkLog(
-                            rs.getInt("log_id"),
-                            project,
-                            rs.getDate("work_date").toLocalDate(),
-                            rs.getBigDecimal("hours_worked"),
-                            rs.getString("description")
-                    ));
+                    logs.add(mapResultSetToWorkLog(rs));
                 }
             }
         }
         return logs;
+    }
+
+    private WorkLog mapResultSetToWorkLog(ResultSet rs) throws SQLException {
+        Client client = new Client(
+                rs.getInt("client_id"),
+                rs.getString("client_name"),
+                rs.getString("client_email"),
+                rs.getString("client_phone")
+        );
+        Project project = new Project(
+                rs.getInt("project_id"),
+                client,
+                rs.getString("project_name"),
+                rs.getBigDecimal("hourly_rate"),
+                rs.getBigDecimal("budget_amount")
+        );
+        return new WorkLog(
+                rs.getInt("log_id"),
+                project,
+                rs.getDate("work_date").toLocalDate(),
+                rs.getBigDecimal("hours_worked"),
+                rs.getString("description")
+        );
     }
 
     public BigDecimal sumHoursByProjectId(int projectId) throws SQLException {

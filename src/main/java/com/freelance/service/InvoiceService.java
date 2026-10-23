@@ -2,6 +2,8 @@ package com.freelance.service;
 
 import com.freelance.dao.InvoiceDao;
 import com.freelance.dao.WorkLogDao;
+import com.freelance.dao.PaymentDao;
+import com.freelance.model.Payment;
 import com.freelance.model.Invoice;
 import com.freelance.model.InvoiceStatus;
 import com.freelance.model.Project;
@@ -19,15 +21,18 @@ public class InvoiceService {
     private static final Logger logger = LoggerFactory.getLogger(InvoiceService.class);
     private final WorkLogDao workLogDao;
     private final InvoiceDao invoiceDao;
+    private final PaymentDao paymentDao;
 
     public InvoiceService() {
         this.workLogDao = new WorkLogDao();
         this.invoiceDao = new InvoiceDao();
+        this.paymentDao = new PaymentDao();
     }
 
     public InvoiceService(WorkLogDao workLogDao, InvoiceDao invoiceDao) {
         this.workLogDao = workLogDao;
         this.invoiceDao = invoiceDao;
+        this.paymentDao = new PaymentDao();
     }
 
     /**
@@ -59,6 +64,17 @@ public class InvoiceService {
 
     public boolean markAsPaid(int invoiceId) throws SQLException {
         return invoiceDao.updateStatus(invoiceId, InvoiceStatus.PAID);
+    }
+
+    /** Records a partial payment and marks the invoice paid only when its balance reaches zero. */
+    public Payment recordPayment(int invoiceId, BigDecimal amount, String note) throws SQLException {
+        Invoice invoice = invoiceDao.findById(invoiceId).orElseThrow(() -> new IllegalArgumentException("Invoice not found: " + invoiceId));
+        if (amount == null || amount.signum() <= 0 || amount.compareTo(invoice.getBalanceDue()) > 0) {
+            throw new IllegalArgumentException("Payment must be greater than zero and no more than the balance due of " + invoice.getBalanceDue());
+        }
+        Payment saved = paymentDao.save(new Payment(0, invoiceId, amount, LocalDate.now(), note));
+        if (amount.compareTo(invoice.getBalanceDue()) == 0) invoiceDao.updateStatus(invoiceId, InvoiceStatus.PAID);
+        return saved;
     }
 
     public List<WorkLog> getWorkLogsForProject(int projectId) throws SQLException {

@@ -8,19 +8,29 @@ public class Project {
     private Client client;
     private String projectName;
     private BigDecimal hourlyRate;
+    private BigDecimal budgetAmount;
 
     public Project() {
     }
 
     public Project(int projectId, Client client, String projectName, BigDecimal hourlyRate) {
+        this(projectId, client, projectName, hourlyRate, BigDecimal.ZERO);
+    }
+
+    public Project(int projectId, Client client, String projectName, BigDecimal hourlyRate, BigDecimal budgetAmount) {
         this.projectId = projectId;
         this.client = client;
         this.projectName = projectName;
         this.hourlyRate = hourlyRate;
+        this.budgetAmount = budgetAmount == null ? BigDecimal.ZERO : budgetAmount;
     }
 
     public Project(Client client, String projectName, BigDecimal hourlyRate) {
         this(0, client, projectName, hourlyRate);
+    }
+
+    public Project(Client client, String projectName, BigDecimal hourlyRate, BigDecimal budgetAmount) {
+        this(0, client, projectName, hourlyRate, budgetAmount);
     }
 
     public int getProjectId() {
@@ -54,6 +64,9 @@ public class Project {
     public void setHourlyRate(BigDecimal hourlyRate) {
         this.hourlyRate = hourlyRate;
     }
+
+    public BigDecimal getBudgetAmount() { return budgetAmount; }
+    public void setBudgetAmount(BigDecimal budgetAmount) { this.budgetAmount = budgetAmount == null ? BigDecimal.ZERO : budgetAmount; }
 
     @Override
     public boolean equals(Object o) {
